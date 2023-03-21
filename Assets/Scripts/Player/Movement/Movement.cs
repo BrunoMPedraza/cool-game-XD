@@ -33,6 +33,12 @@ public class Movement : MonoBehaviour
         }
     }
 
+    
+    public void SetDirection(Direction newDirection)
+    {
+        direction = newDirection;
+    }
+
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
@@ -44,7 +50,7 @@ public class Movement : MonoBehaviour
         float y = Input.GetAxisRaw("Vertical");
         if (x != 0 || y != 0)
         {
-            direction = DirectionHelper.GetDirection(x, y);
+            SetDirection(DirectionHelper.GetDirection(x, y));
         }
     }
-}
+}   
