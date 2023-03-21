@@ -1,4 +1,5 @@
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -8,35 +9,44 @@ public class Movement : MonoBehaviour
     public Direction direction;
     public float speed = 2;
 
+    private bool isBlocked = false;
+
     public void Move()
     {
+        if (isBlocked)
+        {
+            return;
+        }
+
         Obstacle detectedObstacle = PathIdentifier.GetObstacle(transform.position, direction);
         if (detectedObstacle)
+        {
             HandleObstacle(detectedObstacle);
-    
-        Translate();
+        }
+        else
+        {
+            Translate();
+        }
     }
 
     public void Translate()
     {
         body.MovePosition(body.position + (Vector3)DirectionHelper.TransformToVector2(direction) * (speed * Time.fixedDeltaTime));
     }
-    
+
     public void HandleObstacle(Obstacle obstacle)
     {
-        // do things when an obstacle appears
-        switch (obstacle.Type)
-        {
-            case ObstacleType.BLOCK:
-                direction = DirectionHelper.ReverseDirection(direction);
-                break;
-        }
+        isBlocked = true;
+        direction = DirectionHelper.ReverseDirection(direction);
+        StartCoroutine(UnblockAndMoveAwayFromObstacle(0.5f));
     }
 
-    
-    public void SetDirection(Direction newDirection)
+    private IEnumerator UnblockAndMoveAwayFromObstacle(float delay)
     {
-        direction = newDirection;
+        yield return new WaitForSeconds(delay);
+        Vector3 offset = DirectionHelper.TransformToVector2(direction) * 0.1f;
+        body.MovePosition(body.position + offset);
+        isBlocked = false;
     }
 
     private void Awake()
@@ -50,7 +60,7 @@ public class Movement : MonoBehaviour
         float y = Input.GetAxisRaw("Vertical");
         if (x != 0 || y != 0)
         {
-            SetDirection(DirectionHelper.GetDirection(x, y));
+            direction = DirectionHelper.GetDirection(x, y);
         }
     }
-}   
+}
